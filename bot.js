@@ -22,20 +22,13 @@ console.log('🤖 Бот запущен!');
  */
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
-  const welcomeMessage = `🔮 Добро пожаловать в бот гадания на таро!
+  const welcomeMessage = `🔮 Привет, давай разложим таро на будущее. Лучше всего я отвечаю на личные вопросы, на которые нет правильных ответов. Например:
 
-Я помогу тебе заглянуть в будущее и узнать, что ждет тебя в 2026 году.
+— Нужно ли мне переехать в другую страну?
+— Пора ли заводить кота?
+— Стоит ли увольняться?
 
-Задай мне личный вопрос о своей судьбе, и я разложу для тебя карты таро.
-
-Например:
-• Уволят ли меня в 2026 году?
-• Что мне ждать от новых отношений?
-• Какие перемены ждут меня в следующем году?
-
-⚠️ Обрати внимание: я раскладываю таро только по личным вопросам.
-
-Задай свой вопрос:`;
+Напиши и отправь сообщение с вопросом 👇`;
 
   bot.sendMessage(chatId, welcomeMessage);
   userStates.delete(chatId); // Сбрасываем состояние
@@ -86,7 +79,7 @@ bot.on('message', async (msg) => {
     // Если вопрос отклонен
     if (verification.status === 'reject') {
       bot.sendMessage(chatId,
-        '😔 Прости, но мы раскладываем таро только по личным вопросам. Задай вопрос по своей судьбе.',
+        '😔 Прости, но я не могу делать расклады на такие вопросы.',
         {
           reply_markup: {
             inline_keyboard: [[
@@ -98,15 +91,8 @@ bot.on('message', async (msg) => {
       return;
     }
 
-    // Определяем финальный вопрос
+    // Используем оригинальный вопрос
     let finalQuestion = text;
-    let warningText = '';
-
-    if (verification.status === 'reformulate' && verification.reformulated_question) {
-      finalQuestion = verification.reformulated_question;
-      warningText = verification.warning_message ||
-        `⚠️ Не шутим с судьбой по таким вопросам, поэтому разложим таро на вопрос попроще: "${finalQuestion}"\n\n`;
-    }
 
     // Шаг 2: Раскладываем карты
     bot.sendMessage(chatId, '🃏 Раскладываю карты таро...');
@@ -117,8 +103,6 @@ bot.on('message', async (msg) => {
     ).join(', '));
 
     // Шаг 3: Создаем коллаж
-    bot.sendMessage(chatId, '🖼 Создаю изображение...');
-
     const collagePath = await createCollage(cards, chatId);
 
     // Шаг 4: Получаем маркетинговое сообщение
@@ -126,7 +110,7 @@ bot.on('message', async (msg) => {
     const marketingTextForClaude = formatMarketingText(verification.category);
 
     // Шаг 5: Генерируем интерпретацию
-    bot.sendMessage(chatId, '🔮 Читаю карты...');
+    bot.sendMessage(chatId, '🔮 Интерпретирую увиденное...');
 
     const interpretation = await generateInterpretation(
       finalQuestion,
@@ -136,22 +120,16 @@ bot.on('message', async (msg) => {
 
     // Шаг 6: Формируем сообщения
     const cardsList = cards.map((card, index) => {
-      const position = index === 0 ? '🕰 Прошлое' : index === 1 ? '⏳ Настоящее' : '🔮 Будущее';
+      const position = index === 0 ? '🕰 Прошлое' : index === 1 ? '🫧 Настоящее' : '👁 Будущее';
       const orientation = card.reversed ? '(перевернутая)' : '';
       return `${position}: ${card.name} ${orientation}`;
     }).join('\n');
 
     // Краткое сообщение для caption (до 1024 символов)
-    let photoCaption = `🔮 Расклад на вопрос: "${finalQuestion}"\n\n`;
-
-    if (warningText) {
-      photoCaption += warningText;
-    }
-
-    photoCaption += `${cardsList}`;
+    let photoCaption = `Расклад на вопрос «${finalQuestion}»\n\n${cardsList}`;
 
     // Полное сообщение с интерпретацией
-    let interpretationMessage = `💫 Интерпретация:\n\n${interpretation}`;
+    let interpretationMessage = `💫 **Интерпретация на вопрос «${finalQuestion}»**\n\n${interpretation}`;
 
     // Добавляем маркетинговый блок только если он заполнен
     if (marketing.message && !marketing.message.startsWith('ЗАПОЛНИТЕ')) {
