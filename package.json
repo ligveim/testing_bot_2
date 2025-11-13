@@ -1,0 +1,19 @@
+{
+  "name": "tarot-bot-telegram",
+  "version": "1.0.0",
+  "description": "Telegram bot for tarot reading using Claude Haiku 4.5",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "node bot.js"
+  },
+  "keywords": ["telegram", "bot", "tarot", "claude", "ai"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.66.0",
+    "@anthropic-ai/sdk": "^0.32.0",
+    "dotenv": "^16.4.7",
+    "sharp": "^0.33.5"
+  }
+}
