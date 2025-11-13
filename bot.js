@@ -76,10 +76,25 @@ bot.on('message', async (msg) => {
     const verification = await verifyQuestion(text);
     console.log('✅ Верификация завершена:', verification);
 
-    // Если вопрос отклонен
-    if (verification.status === 'reject') {
+    // Проверка на бессмысленные вопросы
+    if (verification.status === 'invalid') {
       bot.sendMessage(chatId,
-        '😔 Прости, но я не могу делать расклады на такие вопросы.',
+        '🤨 На такое я не смогу разложить таро. Напишите конкретный вопрос, например, «Что меня ждёт в 2026 году на работе?»',
+        {
+          reply_markup: {
+            inline_keyboard: [[
+              { text: '🔮 Задать другой вопрос', callback_data: 'ask_another' }
+            ]]
+          }
+        }
+      );
+      return;
+    }
+
+    // Проверка на щепетильные темы
+    if (verification.status === 'sensitive') {
+      bot.sendMessage(chatId,
+        '🤨 На такое я не смогу разложить таро — не стоит гадать на щепетильные темы. Напишите личный вопрос, например, «Что меня ждёт в 2026 году на работе?»',
         {
           reply_markup: {
             inline_keyboard: [[
