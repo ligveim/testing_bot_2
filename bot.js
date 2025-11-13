@@ -107,15 +107,13 @@ bot.on('message', async (msg) => {
 
     // Шаг 4: Получаем маркетинговое сообщение
     const marketing = getMarketingMessage(verification.category);
-    const marketingTextForClaude = formatMarketingText(verification.category);
 
     // Шаг 5: Генерируем интерпретацию
     bot.sendMessage(chatId, '🔮 Интерпретирую увиденное...');
 
     const interpretation = await generateInterpretation(
       finalQuestion,
-      cards,
-      marketingTextForClaude
+      cards
     );
 
     // Шаг 6: Формируем сообщения
@@ -131,9 +129,9 @@ bot.on('message', async (msg) => {
     // Полное сообщение с интерпретацией
     let interpretationMessage = `💫 **Интерпретация на вопрос «${finalQuestion}»**\n\n${interpretation}`;
 
-    // Добавляем маркетинговый блок только если он заполнен
-    if (marketing.message && !marketing.message.startsWith('ЗАПОЛНИТЕ')) {
-      interpretationMessage += `\n\n${marketing.message}`;
+    // Добавляем маркетинговый блок в конце
+    if (marketing.message) {
+      interpretationMessage += `\n\n—\n\n${marketing.message}`;
     }
 
     // Шаг 7: Отправляем результат (сначала фото, потом интерпретацию)
@@ -144,9 +142,10 @@ bot.on('message', async (msg) => {
     await bot.sendMessage(chatId, interpretationMessage, {
       reply_markup: {
         inline_keyboard: [[
-          { text: '🔮 Задать ещё вопрос', callback_data: 'ask_another' }
+          { text: '📚 Пройти курс', url: marketing.url }
         ]]
-      }
+      },
+      parse_mode: 'Markdown'
     });
 
     console.log('✅ Расклад отправлен пользователю');
