@@ -134,30 +134,36 @@ bot.on('message', async (msg) => {
       marketingTextForClaude
     );
 
-    // Шаг 6: Формируем финальное сообщение
+    // Шаг 6: Формируем сообщения
     const cardsList = cards.map((card, index) => {
       const position = index === 0 ? '🕰 Прошлое' : index === 1 ? '⏳ Настоящее' : '🔮 Будущее';
       const orientation = card.reversed ? '(перевернутая)' : '';
       return `${position}: ${card.name} ${orientation}`;
     }).join('\n');
 
-    let finalMessage = `🔮 Расклад на вопрос: "${finalQuestion}"\n\n`;
+    // Краткое сообщение для caption (до 1024 символов)
+    let photoCaption = `🔮 Расклад на вопрос: "${finalQuestion}"\n\n`;
 
     if (warningText) {
-      finalMessage += warningText;
+      photoCaption += warningText;
     }
 
-    finalMessage += `${cardsList}\n\n`;
-    finalMessage += `💫 Интерпретация:\n${interpretation}\n\n`;
+    photoCaption += `${cardsList}`;
+
+    // Полное сообщение с интерпретацией
+    let interpretationMessage = `💫 Интерпретация:\n\n${interpretation}`;
 
     // Добавляем маркетинговый блок только если он заполнен
     if (marketing.message && !marketing.message.startsWith('ЗАПОЛНИТЕ')) {
-      finalMessage += `\n${marketing.message}`;
+      interpretationMessage += `\n\n${marketing.message}`;
     }
 
-    // Шаг 7: Отправляем результат
+    // Шаг 7: Отправляем результат (сначала фото, потом интерпретацию)
     await bot.sendPhoto(chatId, collagePath, {
-      caption: finalMessage,
+      caption: photoCaption
+    });
+
+    await bot.sendMessage(chatId, interpretationMessage, {
       reply_markup: {
         inline_keyboard: [[
           { text: '🔮 Задать ещё вопрос', callback_data: 'ask_another' }
