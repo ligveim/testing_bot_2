@@ -150,31 +150,41 @@ async function createCollage(cards, userId) {
 }
 
 /**
- * Удаляет старые коллажи (старше 1 часа)
+ * Удаляет старые коллажи (fallback для случаев, когда не удалились сразу)
+ * Удаляет файлы старше 5 минут
  */
 function cleanupOldCollages() {
   try {
     const files = fs.readdirSync(TEMP_DIR);
     const now = Date.now();
-    const oneHour = 60 * 60 * 1000;
+    const fiveMinutes = 5 * 60 * 1000;
 
+    let deletedCount = 0;
     files.forEach(file => {
       const filePath = path.join(TEMP_DIR, file);
-      const stats = fs.statSync(filePath);
-      const fileAge = now - stats.mtimeMs;
+      try {
+        const stats = fs.statSync(filePath);
+        const fileAge = now - stats.mtimeMs;
 
-      if (fileAge > oneHour) {
-        fs.unlinkSync(filePath);
-        console.log(`Удален старый коллаж: ${file}`);
+        if (fileAge > fiveMinutes) {
+          fs.unlinkSync(filePath);
+          deletedCount++;
+        }
+      } catch (err) {
+        // Файл уже удалён или недоступен - игнорируем
       }
     });
+
+    if (deletedCount > 0) {
+      console.log(`🗑 Очистка: удалено ${deletedCount} старых коллажей`);
+    }
   } catch (error) {
     console.error('Ошибка при очистке старых коллажей:', error);
   }
 }
 
-// Запускаем очистку каждые 30 минут
-setInterval(cleanupOldCollages, 30 * 60 * 1000);
+// Запускаем очистку каждые 10 минут
+setInterval(cleanupOldCollages, 10 * 60 * 1000);
 
 module.exports = {
   createCollage,

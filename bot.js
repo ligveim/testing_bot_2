@@ -3,6 +3,7 @@
  */
 
 const TelegramBot = require('node-telegram-bot-api');
+const fs = require('fs');
 require('dotenv').config();
 
 const { verifyQuestion, generateInterpretation } = require('./claude');
@@ -162,6 +163,14 @@ bot.on('message', async (msg) => {
     });
 
     console.log('✅ Расклад отправлен пользователю');
+
+    // Удаляем временный коллаж сразу после отправки
+    try {
+      fs.unlinkSync(collagePath);
+      console.log('🗑 Временный коллаж удалён');
+    } catch (error) {
+      console.error('Ошибка при удалении коллажа:', error);
+    }
 
   } catch (error) {
     console.error('❌ Ошибка при обработке сообщения:', error);
