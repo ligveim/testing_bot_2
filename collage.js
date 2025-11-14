@@ -13,8 +13,9 @@ const CARD_WIDTH = 960;
 const CARD_HEIGHT = 1658;
 
 // ⚙️ НАСТРОЙКИ ПОВОРОТА КАРТ (можно редактировать здесь)
-// Максимальный угол отклонения от нормального положения (в градусах)
-const MAX_ROTATION_ANGLE = 3; // Измените это значение для большего/меньшего наклона
+// Диапазон углов отклонения от нормального положения (в градусах)
+const MIN_ROTATION_ANGLE = 1;   // Минимальный наклон (всегда есть наклон)
+const MAX_ROTATION_ANGLE = 3;   // Максимальный наклон
 
 // Пути к фоновым изображениям
 const BACKGROUNDS_DIR = path.join(__dirname, 'backgrounds');
@@ -27,19 +28,23 @@ if (!fs.existsSync(TEMP_DIR)) {
 }
 
 /**
- * Генерирует случайный угол поворота
+ * Генерирует случайный угол поворота (ВСЕГДА с наклоном)
  * @param {boolean} reversed - Перевернута ли карта
  * @returns {number} Угол поворота в градусах
  */
 function getRandomRotation(reversed) {
-  // Генерируем случайное отклонение от -MAX_ROTATION_ANGLE до +MAX_ROTATION_ANGLE
-  const deviation = (Math.random() * 2 - 1) * MAX_ROTATION_ANGLE;
+  // Генерируем угол от MIN до MAX (например, от 1 до 3)
+  const angle = MIN_ROTATION_ANGLE + Math.random() * (MAX_ROTATION_ANGLE - MIN_ROTATION_ANGLE);
+
+  // Случайно выбираем направление наклона (+ или -)
+  const direction = Math.random() < 0.5 ? -1 : 1;
+  const deviation = angle * direction;
 
   if (reversed) {
-    // Если карта перевернута: 180 + небольшое отклонение
+    // Если карта перевернута: 180 ± наклон (например, 177° или 183°)
     return 180 + deviation;
   } else {
-    // Если карта прямая: 0 + небольшое отклонение
+    // Если карта прямая: 0 ± наклон (например, -2° или +2°)
     return deviation;
   }
 }
@@ -57,7 +62,7 @@ async function createCollage(cards, userId) {
     const backgroundPath = path.join(BACKGROUNDS_DIR, BACKGROUND_FILES[randomBackgroundIndex]);
 
     // Размер одной карты в коллаже (делаем меньше, чтобы было место для промежутков)
-    const cardInCollageHeight = Math.floor(COLLAGE_HEIGHT * 0.85); // 85% высоты вместо 100%
+    const cardInCollageHeight = Math.floor(COLLAGE_HEIGHT * 0.75); // 75% высоты для более компактного вида
     const cardInCollageWidth = Math.floor((CARD_WIDTH / CARD_HEIGHT) * cardInCollageHeight);
 
     // Расстояние между картами
