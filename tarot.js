@@ -21,12 +21,14 @@ const marketingMessages = JSON.parse(
  */
 function getAllCards() {
   const cards = [];
+  let numericId = 0;
 
-  // Старшие Арканы
+  // Старшие Арканы (0-21)
   interpretations.major_arcana.forEach(card => {
     cards.push({
       type: 'major',
       id: `major_${card.id}`,
+      numericId: card.id,  // Используем числовой id для файлов
       name: card.name,
       name_en: card.name_en,
       interpretation: {
@@ -36,13 +38,18 @@ function getAllCards() {
     });
   });
 
-  // Младшие Арканы
-  Object.keys(interpretations.minor_arcana).forEach(suit => {
+  // Младшие Арканы (22-77)
+  // Порядок: wands (22-35), cups (36-49), swords (50-63), pentacles (64-77)
+  numericId = 22;
+  const suitsOrder = ['wands', 'cups', 'swords', 'pentacles'];
+
+  suitsOrder.forEach(suit => {
     interpretations.minor_arcana[suit].forEach(card => {
       cards.push({
         type: 'minor',
         suit: suit,
         id: card.id,
+        numericId: numericId++,  // Числовой id для файлов
         name: card.name,
         name_en: card.name_en,
         interpretation: {
@@ -83,7 +90,7 @@ function drawThreeCards() {
   return drawnCards.map(card => ({
     ...card,
     reversed: Math.random() < 0.5,
-    imagePath: path.join(__dirname, 'tarot_cards', `${card.id}.png`)
+    imagePath: path.join(__dirname, 'tarot_cards', `${card.numericId}.png`)
   }));
 }
 
