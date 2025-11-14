@@ -124,8 +124,6 @@ bot.on('message', async (msg) => {
     const marketing = getMarketingMessage(verification.category);
 
     // Шаг 5: Генерируем интерпретацию
-    bot.sendMessage(chatId, '🔮 Интерпретирую увиденное...');
-
     const interpretation = await generateInterpretation(
       finalQuestion,
       cards

@@ -28,16 +28,34 @@ if (!fs.existsSync(TEMP_DIR)) {
 }
 
 /**
+ * Генерирует паттерн направлений для трёх карт (всегда разнонаправленные)
+ * @returns {Array} Массив из трёх направлений [-1, -1, 1] или [-1, 1, 1] в случайном порядке
+ */
+function generateDirectionPattern() {
+  // Создаём паттерн: две карты в одну сторону, одна в другую
+  // Случайно выбираем какой паттерн использовать
+  const pattern = Math.random() < 0.5
+    ? [-1, -1, 1]  // Две влево, одна вправо
+    : [-1, 1, 1];  // Одна влево, две вправо
+
+  // Перемешиваем порядок, чтобы позиции были случайными
+  for (let i = pattern.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pattern[i], pattern[j]] = [pattern[j], pattern[i]];
+  }
+
+  return pattern;
+}
+
+/**
  * Генерирует случайный угол поворота (ВСЕГДА с наклоном)
  * @param {boolean} reversed - Перевернута ли карта
+ * @param {number} direction - Направление наклона (-1 или 1)
  * @returns {number} Угол поворота в градусах
  */
-function getRandomRotation(reversed) {
+function getRandomRotation(reversed, direction) {
   // Генерируем угол от MIN до MAX (например, от 1 до 3)
   const angle = MIN_ROTATION_ANGLE + Math.random() * (MAX_ROTATION_ANGLE - MIN_ROTATION_ANGLE);
-
-  // Случайно выбираем направление наклона (+ или -)
-  const direction = Math.random() < 0.5 ? -1 : 1;
   const deviation = angle * direction;
 
   if (reversed) {
@@ -78,14 +96,19 @@ async function createCollage(cards, userId) {
     // Загружаем случайный фон
     let background = sharp(backgroundPath);
 
+    // Генерируем паттерн направлений для всех трёх карт
+    // Гарантирует, что карты будут наклонены в разные стороны
+    const directionPattern = generateDirectionPattern();
+    console.log('Паттерн наклона карт:', directionPattern.map(d => d === -1 ? 'влево' : 'вправо').join(', '));
+
     // Подготавливаем карты для композиции
     const compositeCards = [];
 
     for (let i = 0; i < 3; i++) {
       const card = cards[i];
 
-      // Генерируем случайный угол поворота
-      const rotationAngle = getRandomRotation(card.reversed);
+      // Генерируем случайный угол поворота с заданным направлением
+      const rotationAngle = getRandomRotation(card.reversed, directionPattern[i]);
 
       // Загружаем и поворачиваем карту
       let cardImage = sharp(card.imagePath)
